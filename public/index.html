@@ -8,13 +8,41 @@
     </head>
     <body>
         <div>
-          <p id="link"></p>
+            <p id="link"></p>
         </div>
+        <script id="game-template" type="text/html">
+            <div class="game">
+                <form id="game__form">
+                    <h3>Сделайте ход</h3>
+                    <div class="game__control">
+                        <input type="radio" name="move" value="rock" id="rock">
+                        <label for="rock">Камень</label>
+                    </div>
+                    <div class="game__control">
+                        <input type="radio" name="move" value="scissors" id="scissors">
+                        <label for="scissors">Ножницы</label>
+                    </div>
+                    <div class="game__control">
+                        <input type="radio" name="move" value="paper" id="paper">
+                        <label for="paper">Бумага</label>
+                    </div>
+                    <div class="game__control">
+                        <input type="radio" name="move" value="lizard" id="lizard">
+                        <label for="lizard">Ящерица</label>
+                    </div>
+                    <div class="game__control">
+                        <input type="radio" name="move" value="spock" id="spock">
+                        <label for="spock">Спок</label>
+                    </div>
+                    <button type="submit">Сделать ход</button>
+                </form>
+            </div>
+        </script>
         <script id="link-template" type="text/html">
-          <div class="link">
-              <p>{{link}}</p>
-          </div>
-      </script>
+            <div class="link">
+                <p>{{link}}</p>
+            </div>
+        </script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.0.1/mustache.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.6.0/qs.min.js"></script>
