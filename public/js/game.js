@@ -29,6 +29,11 @@ socket.on('start the game', () => {
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
 
+    const sound = new Howl({
+        src: ['sounds/start.mp3']
+      });
+      sound.play();
+
     document.querySelector('#game__form')
       .addEventListener('submit', (e) => {
         e.preventDefault();
@@ -61,15 +66,28 @@ socket.on('return result', ({ winnerId, lastMove }) => {
     document.querySelector('#move-button').removeAttribute('disabled');
     console.log(lastMove);
     let result;
+    let sound;
 
     if (winnerId === socket.id) {
         result = 'ПОБЕДА';
+        sound = new Howl({
+            src: ['sounds/win.mp3']
+          });
+          sound.play();
     } else {
         result = 'ПОРАЖЕНИЕ'
+        sound = new Howl({
+            src: ['sounds/lose.mp3']
+          });
+          sound.play();
     }
 
     if (winnerId === null) {
         result = 'НИЧЬЯ';
+        sound = new Howl({
+            src: ['sounds/draw.mp3']
+          });
+          sound.play();
     }
 
     
