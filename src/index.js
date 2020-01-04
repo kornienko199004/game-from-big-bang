@@ -74,7 +74,7 @@ io.on('connection', socket => {
       // if there are 2 move, start to find winner
       if (room && room.lastMove.length === 2) {
         const winnerId = findWinner(room.lastMove);
-        io.to(room.room).emit('return result', winnerId);
+        io.to(room.room).emit('return result', { winnerId, lastMove: room.lastMove });
 
         // clear moves in room
         clearLastMove(room.room);

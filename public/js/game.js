@@ -2,6 +2,7 @@ const socket = io();
 const link = document.querySelector('#link');
 const linkTemplate = document.querySelector('#link-template').innerHTML;
 const gameTemplate = document.querySelector('#game-template').innerHTML;
+const resultTemplate = document.querySelector('#result-template').innerHTML;
 
 const { room } = Qs.parse(location.search, { ignoreQueryPrefix: true });
 
@@ -37,16 +38,42 @@ socket.on('start the game', () => {
       });
 });
 
-socket.on('return result', (id) => {
+const gestureTranslate = {
+    rock: 'камень',
+    scissors: 'ножницы',
+    paper: 'бумага',
+    lizard: 'ящерица',
+    spock: 'спок',
+}
+const showResults = (lastMove, id, result) => {
+    const yourGesture = gestureTranslate[lastMove.filter(item => item.id === id)[0].move];
+    const oponentGesture = gestureTranslate[lastMove.filter(item => item.id !== id)[0].move];
+
+    const html = Mustache.render(resultTemplate, {
+        yourGesture,
+        oponentGesture,
+        result
+    });
+    document.querySelector('#result').innerHTML = html;
+};
+
+socket.on('return result', ({ winnerId, lastMove }) => {
     document.querySelector('#move-button').removeAttribute('disabled');
-    if (id === null) {
-        return alert('НИЧЬЯ');
+    console.log(lastMove);
+    let result;
+
+    if (winnerId === socket.id) {
+        result = 'ПОБЕДА';
+    } else {
+        result = 'ПОРАЖЕНИЕ'
     }
 
-    if (id === socket.id) {
-        return alert('~ВЫ ПОБЕДИЛИ~!!!!!!!!!!');
+    if (winnerId === null) {
+        result = 'НИЧЬЯ';
     }
-    return alert('~ВЫ ПРОИГРАЛИ(((~');
+
+    
+    showResults(lastMove, socket.id, result);
 });
 
 

@@ -3,7 +3,6 @@ let users = [];
 const addUser = ({ id, room }) => {
   const user = { id, room };
   users = [...users, user];
-  console.log(users);
   return user;
 };
 
