@@ -13,34 +13,40 @@ socket.emit('join', { room }, error => {
 });
 
 socket.on('return room', lastRoom => {
-    const joinLink = new URL(location);
+    const joinLink = new URL(location.origin);
     joinLink.searchParams.append('room', lastRoom);
 
     // should show link
-
     const html = Mustache.render(linkTemplate, {
         link: joinLink.toString(),
     });
-    link.insertAdjacentHTML('beforeend', html);
+    link.innerHTML = html;
 });
 
 socket.on('start the game', () => {
-    alert('start the game');
-    console.log('start the game');
+    alert('ИГРА НАЧАЛАСЬ');
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
 
     document.querySelector('#game__form')
       .addEventListener('submit', (e) => {
         e.preventDefault();
-        console.log(e.target.elements.move.value);
 
         socket.emit('send move', { move: e.target.elements.move.value });
+        document.querySelector('#move-button').setAttribute('disabled', 'disabled');
       });
 });
 
-socket.on('get result', (res) => {
-    console.log(res);
+socket.on('return result', (id) => {
+    document.querySelector('#move-button').removeAttribute('disabled');
+    if (id === null) {
+        return alert('НИЧЬЯ');
+    }
+
+    if (id === socket.id) {
+        return alert('~ВЫ ПОБЕДИЛИ~!!!!!!!!!!');
+    }
+    return alert('~ВЫ ПРОИГРАЛИ(((~');
 });
 
 

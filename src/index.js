@@ -3,7 +3,7 @@ const http = require('http');
 const express = require('express');
 const socketio = require('socket.io');
 
-const { addRoom, writeLastMove, getRooms } = require('./utils/rooms');
+const { addRoom, writeLastMove, getRooms, clearLastMove } = require('./utils/rooms');
 
 const {
   addUser,
@@ -28,47 +28,65 @@ app.use(express.static(publicDirectoryPath));
 io.on('connection', socket => {
     console.log('New websocket connection');
 
+    // action when socket 'join' to websocket
     socket.on('join', (options, callback) => {
-      console.log(options);
-      console.log(options.room);
-
+    // if options has room property
+    // join user to room
       if (options.room) {
-        // start the game
         socket.join(options.room);
-        addUser({ id: socket.id, room: options.room });
-        io.to(options.room).emit('start the game');
+
+        // add user to list
+        const user = addUser({ id: socket.id, room: options.room });
+
+        // if there is 2 user in room -> start the game
+        if (getUsersInRoom(user.room).length === 2) {
+          io.to(user.room).emit('start the game');
+        }
       } else {
-        // return url
+        // if options hasn't room property
+        // send back join link
         socket.join(lastRoom);
+        // add room to list
         addRoom(lastRoom);
-        addUser({ id: socket.id, room: lastRoom });
+
+        // add user to list
+        addUser({ id: socket.id, room: `${lastRoom}` });
         socket.emit('return room', lastRoom);
+
+        // if there is 2 user in room -> start the game
+        if (getUsersInRoom(`${lastRoom}`).length === 2) {
+          io.to(lastRoom).emit('start the game');
+        }
+
+        // increment lastRoom number
         lastRoom += 1;
       }
       callback();
   });
 
-  
   socket.on('send move', ({ move }) => {
-    console.log(move);
     const user = getUser(socket.id);
-    console.log(user);
     if (user) {
+
+      // write user's move to room
       const room = writeLastMove(user, move);
-      console.log(room);
 
+      // if there are 2 move, start to find winner
       if (room && room.lastMove.length === 2) {
-        // find winner
-        console.log(room.lastMove);
         const winnerId = findWinner(room.lastMove);
-        console.log(winnerId);
+        io.to(room.room).emit('return result', winnerId);
 
+        // clear moves in room
+        clearLastMove(room.room);
       }
     }
-    // write move to room 
-    // [room]: {
-      // lastMove: [{ id: String, move: string }]
-    // }
+  });
+
+  socket.on('disconnect', () => {
+    const user = removeUser(socket.id);
+    if (user) {
+      io.to(user.room).emit('return room', user.room);
+    }
   });
 });
 
