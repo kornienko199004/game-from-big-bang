@@ -6,6 +6,18 @@ const resultTemplate = document.querySelector('#result-template').innerHTML;
 
 const { room } = Qs.parse(location.search, { ignoreQueryPrefix: true });
 
+
+const WIN_TEXT = 'ПОБЕДА';
+const LOSE_TEXT = 'ПОРАЖЕНИЕ';
+const DRAW_TEXT = 'НИЧЬЯ';
+
+const playSound = (src) => {
+    sound = new Howl({
+        src: [src],
+    });
+    sound.play();
+};
+
 socket.emit('join', { room }, error => {
     if (error) {
         alert(error);
@@ -25,22 +37,18 @@ socket.on('return room', lastRoom => {
 });
 
 socket.on('start the game', () => {
-    alert('ИГРА НАЧАЛАСЬ');
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
+    // playSound('sounds/start.mp3');
 
-    const sound = new Howl({
-        src: ['sounds/start.mp3']
-      });
-      sound.play();
-
-    document.querySelector('#game__form')
-      .addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        socket.emit('send move', { move: e.target.elements.move.value });
-        document.querySelector('#move-button').setAttribute('disabled', 'disabled');
-      });
+    document.querySelector('#controls').addEventListener('click', function(e) {
+        socket.emit('send move', { move: e.target.id });
+        for (child of this.children) {
+            if (child.nodeName === 'BUTTON') {
+                child.setAttribute('disabled', 'disabled');
+            }
+        }
+    });
 });
 
 const gestureTranslate = {
@@ -49,49 +57,42 @@ const gestureTranslate = {
     paper: 'бумага',
     lizard: 'ящерица',
     spock: 'спок',
-}
+};
 const showResults = (lastMove, id, result) => {
-    const yourGesture = gestureTranslate[lastMove.filter(item => item.id === id)[0].move];
-    const oponentGesture = gestureTranslate[lastMove.filter(item => item.id !== id)[0].move];
+    const yourGesture =
+        gestureTranslate[lastMove.filter(item => item.id === id)[0].move];
+    const oponentGesture =
+        gestureTranslate[lastMove.filter(item => item.id !== id)[0].move];
 
     const html = Mustache.render(resultTemplate, {
         yourGesture,
         oponentGesture,
-        result
+        result,
     });
     document.querySelector('#result').innerHTML = html;
 };
 
 socket.on('return result', ({ winnerId, lastMove }) => {
-    document.querySelector('#move-button').removeAttribute('disabled');
-    console.log(lastMove);
+    for (child of document.querySelector('#controls').children) {
+        if (child.nodeName === 'BUTTON') {
+            child.removeAttribute('disabled');
+        }
+    }
     let result;
     let sound;
 
     if (winnerId === socket.id) {
-        result = 'ПОБЕДА';
-        sound = new Howl({
-            src: ['sounds/win.mp3']
-          });
-          sound.play();
+        result = WIN_TEXT;
+        playSound('sounds/win.mp3');
     } else {
-        result = 'ПОРАЖЕНИЕ'
-        sound = new Howl({
-            src: ['sounds/lose.mp3']
-          });
-          sound.play();
+        result = LOSE_TEXT;
+        playSound('sounds/lose.mp3');
     }
 
     if (winnerId === null) {
-        result = 'НИЧЬЯ';
-        sound = new Howl({
-            src: ['sounds/draw.mp3']
-          });
-          sound.play();
+        result = DRAW_TEXT;
+        playSound('sounds/draw.mp3');
     }
 
-    
     showResults(lastMove, socket.id, result);
 });
-
-

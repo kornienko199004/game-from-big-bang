@@ -11,7 +11,7 @@
             integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
             crossorigin="anonymous"
         />
-        
+
         <script src="/js/howler.js"></script>
     </head>
     <body>
@@ -36,9 +36,22 @@
         </div>
         <script id="game-template" type="text/html">
             <div class="">
-                <div class="container">
-                    <div class="game row justify-content-center jumbotron">
-                        <form id="game__form" class="col-md-4 col-12">
+                <div class="container bg-secondary text-light vh-50 rounded p-3">
+                        <div class="col-md-12 col-12 d-flex justify-content-center flex-wrap" id="controls">
+                            <h4 style="width: 100%; text-align: center">Сделайте ход</h4>
+                            <button class="btn btn-success mr-1" id="rock">Камень</button>
+                            <button class="btn btn-success mr-1" id="scissors">Ножницы</button>
+                            <button class="btn btn-success mr-1" id="paper">Бумага</button>
+                            <button class="btn btn-success mr-1" id="lizard">Ящерица</button>
+                            <button class="btn btn-success" id="spock">Спок</button>
+                        </div>
+                        <div class="col-md-4 col-12" id="result">
+                                <h4>Результат</h4>
+                                <p>Ваш выбор:</p>
+                                <p>Выбор опонента:</p>
+                                <p>Итог:</p>
+                        </div>
+                        <!-- <form id="game__form" class="col-md-4 col-12">
                             <h4>Сделайте ход</h4>
                             <div class="game__control form-check">
                                 <input type="radio" name="move" value="rock" id="rock" checked>
@@ -61,9 +74,7 @@
                                 <label for="spock">Спок</label>
                             </div>
                             <button class="btn btn-primary" type="submit" id="move-button">Сделать ход</button>
-                        </form>
-                        <div class="col-md-4 col-12" id="result"></div>
-                    </div>
+                        </form> -->
                 </div>
             </div>
         </script>
