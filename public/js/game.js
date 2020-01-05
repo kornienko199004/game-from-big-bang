@@ -84,14 +84,14 @@ socket.on('return result', ({ winnerId, lastMove }) => {
     if (winnerId === socket.id) {
         result = WIN_TEXT;
         playSound('sounds/win.mp3');
-    } else {
+    } else if (winnerId) {
         result = LOSE_TEXT;
         playSound('sounds/lose.mp3');
     }
 
     if (winnerId === null) {
         result = DRAW_TEXT;
-        playSound('sounds/draw.mp3');
+        playSound('sounds/start.mp3');
     }
 
     showResults(lastMove, socket.id, result);
