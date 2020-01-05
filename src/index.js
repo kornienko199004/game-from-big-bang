@@ -40,7 +40,7 @@ io.on('connection', socket => {
 
         // if there is 2 user in room -> start the game
         if (getUsersInRoom(user.room).length === 2) {
-          io.to(user.room).emit('start the game');
+          io.to(user.room).emit('start the game', getUsersInRoom(`${user.room}`));
         }
       } else {
         // if options hasn't room property
@@ -55,7 +55,7 @@ io.on('connection', socket => {
 
         // if there is 2 user in room -> start the game
         if (getUsersInRoom(`${lastRoom}`).length === 2) {
-          io.to(lastRoom).emit('start the game');
+          io.to(lastRoom).emit('start the game', getUsersInRoom(`${lastRoom}`));
         }
 
         // increment lastRoom number

@@ -6,12 +6,11 @@ const resultTemplate = document.querySelector('#result-template').innerHTML;
 
 const { room } = Qs.parse(location.search, { ignoreQueryPrefix: true });
 
-
 const WIN_TEXT = 'ПОБЕДА';
 const LOSE_TEXT = 'ПОРАЖЕНИЕ';
 const DRAW_TEXT = 'НИЧЬЯ';
 
-const playSound = (src) => {
+const playSound = src => {
     sound = new Howl({
         src: [src],
     });
@@ -36,9 +35,11 @@ socket.on('return room', lastRoom => {
     link.innerHTML = html;
 });
 
-socket.on('start the game', () => {
+socket.on('start the game', (userInRoom) => {
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
+    console.log(userInRoom);
+    // createOffer(oponentId);
     // playSound('sounds/start.mp3');
 
     document.querySelector('#controls').addEventListener('click', function(e) {
@@ -96,3 +97,50 @@ socket.on('return result', ({ winnerId, lastMove }) => {
 
     showResults(lastMove, socket.id, result);
 });
+
+const peerConnection =
+    window.RTCPeerConnection ||
+    window.mozRTCPeerConnection ||
+    window.webkitRTCPeerConnection ||
+    window.msRTCPeerConnection;
+
+const sessionDescription =
+    window.RTCSessionDescription ||
+    window.mozRTCSessionDescription ||
+    window.webkitRTCSessionDescription ||
+    window.msRTCSessionDescription;
+
+navigator.getUserMedia =
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia;
+
+const pc = new peerConnection({
+    iceServers: [
+        {
+            url: 'stun:stun.services.mozilla.com',
+            username: 'somename',
+            credential: 'somecredentials',
+        },
+    ],
+});
+
+function createOffer(id) {
+    pc.createOffer(function(offer) {
+        pc.setLocalDescription(
+            new sessionDescription(offer),
+            function() {
+                socket.emit('make-offer', {
+                    offer: offer,
+                    to: id,
+                });
+            },
+            error
+        );
+    }, error);
+}
+
+function error(err) {
+    console.warn('Error', err);
+}
