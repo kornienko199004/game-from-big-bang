@@ -39,7 +39,8 @@ socket.on('start the game', (userInRoom) => {
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
     console.log(userInRoom);
-    // createOffer(oponentId);
+    const oponentId = userInRoom.filter((item) => item.id !== socket.id)[0].id;
+    createOffer(oponentId);
     // playSound('sounds/start.mp3');
 
     document.querySelector('#controls').addEventListener('click', function(e) {
@@ -140,6 +141,54 @@ function createOffer(id) {
         );
     }, error);
 }
+
+function error(err) {
+    console.warn('Error', err);
+}
+
+socket.on('offer-made', function (data) {
+    offer = data.offer;
+
+    pc.setRemoteDescription(new sessionDescription(data.offer), function () {
+        pc.createAnswer(function (answer) {
+            pc.setLocalDescription(new sessionDescription(answer), function () {
+                console.log('MAKE ANSWER');
+                socket.emit('make-answer', {
+                    answer: answer,
+                    to: data.socket
+                });
+            }, error);
+        }, error);
+    }, error);
+});
+
+let answersFrom = {}, offer;
+
+socket.on('answer-made', function (data) {
+    pc.setRemoteDescription(new sessionDescription(data.answer), function () {
+        // document.getElementById(data.socket).setAttribute('class', 'active');
+        if (!answersFrom[data.socket]) {
+            createOffer(data.socket);
+            answersFrom[data.socket] = true;
+        }
+        navigator.getUserMedia({video: true, audio: true}, function (stream) {
+            var video = document.querySelector('video');
+            video.srcObject = stream;
+            pc.addStream(stream);
+        }, error);
+    }, error);
+});
+
+pc.onaddstream = function (obj) {
+    var vid = document.createElement('video');
+    vid.setAttribute('class', 'video-small');
+    vid.setAttribute('autoplay', 'autoplay');
+    vid.setAttribute('id', 'video-small');
+    console.log(document.getElementById('users-container'))
+    document.getElementById('users-container').appendChild(vid);
+    vid.srcObject = obj.stream;
+}
+
 
 function error(err) {
     console.warn('Error', err);

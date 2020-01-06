@@ -32,14 +32,15 @@
             </div>
         </div>
         <div>
+            <div class="col-md-12 col-12">
+                    <video class="video-large" autoplay></video>
+            </div>
+            <div id="users-container"></div>
             <p id="link"></p>
         </div>
         <script id="game-template" type="text/html">
             <div class="">
                 <div class="container bg-secondary text-light vh-50 rounded p-3">
-                        <div class="col-md-12 col-12">
-                                <video class="video-large" autoplay></video>
-                        </div>
                         <div class="col-md-12 col-12 d-flex justify-content-center flex-wrap" id="controls">
                             <h4 style="width: 100%; text-align: center">Сделайте ход</h4>
                             <button class="btn btn-success mr-1" id="rock">Камень</button>
@@ -54,30 +55,6 @@
                                 <p>Выбор опонента:</p>
                                 <p>Итог:</p>
                         </div>
-                        <!-- <form id="game__form" class="col-md-4 col-12">
-                            <h4>Сделайте ход</h4>
-                            <div class="game__control form-check">
-                                <input type="radio" name="move" value="rock" id="rock" checked>
-                                <label for="rock">Камень</label>
-                            </div>
-                            <div class="game__control form-check">
-                                <input type="radio" name="move" value="scissors" id="scissors">
-                                <label for="scissors">Ножницы</label>
-                            </div>
-                            <div class="game__control form-check">
-                                <input type="radio" name="move" value="paper" id="paper">
-                                <label for="paper">Бумага</label>
-                            </div>
-                            <div class="game__control form-check">
-                                <input type="radio" name="move" value="lizard" id="lizard">
-                                <label for="lizard">Ящерица</label>
-                            </div>
-                            <div class="game__control form-check">
-                                <input type="radio" name="move" value="spock" id="spock">
-                                <label for="spock">Спок</label>
-                            </div>
-                            <button class="btn btn-primary" type="submit" id="move-button">Сделать ход</button>
-                        </form> -->
                 </div>
             </div>
         </script>

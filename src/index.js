@@ -82,6 +82,22 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('make-offer', ({ offer, to }) => {
+    console.log(offer);
+    console.log(to);
+    socket.to(to).emit('offer-made', {
+      offer: offer,
+      socket: socket.id
+    });
+  });
+
+  socket.on('make-answer', function (data) {
+    socket.to(data.to).emit('answer-made', {
+      socket: socket.id,
+      answer: data.answer
+    });
+  });
+
   socket.on('disconnect', () => {
     const user = removeUser(socket.id);
     if (user) {
