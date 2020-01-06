@@ -35,6 +35,56 @@ socket.on('return room', lastRoom => {
     link.innerHTML = html;
 });
 
+const peerConnection =
+    window.RTCPeerConnection ||
+    window.mozRTCPeerConnection ||
+    window.webkitRTCPeerConnection ||
+    window.msRTCPeerConnection;
+
+const sessionDescription =
+    window.RTCSessionDescription ||
+    window.mozRTCSessionDescription ||
+    window.webkitRTCSessionDescription ||
+    window.msRTCSessionDescription;
+
+navigator.getUserMedia =
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia;
+
+const configuration = {
+    iceServers: [
+        {
+            url: 'stun:stun.services.mozilla.com',
+            // username: 'somename',
+            // credential: 'somecredentials',
+        },
+    ],
+};
+
+const pc = new peerConnection(configuration);
+
+function createOffer(id) {
+    pc.createOffer(function(offer) {
+        pc.setLocalDescription(
+            new sessionDescription(offer),
+            function() {
+                socket.emit('make-offer', {
+                    offer: offer,
+                    to: id,
+                });
+            },
+            error
+        );
+    }, error);
+}
+
+function error(err) {
+    console.warn('Error', err);
+}
+
+
 socket.on('start the game', (userInRoom) => {
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
@@ -99,59 +149,12 @@ socket.on('return result', ({ winnerId, lastMove }) => {
     showResults(lastMove, socket.id, result);
 });
 
-const peerConnection =
-    window.RTCPeerConnection ||
-    window.mozRTCPeerConnection ||
-    window.webkitRTCPeerConnection ||
-    window.msRTCPeerConnection;
-
-const sessionDescription =
-    window.RTCSessionDescription ||
-    window.mozRTCSessionDescription ||
-    window.webkitRTCSessionDescription ||
-    window.msRTCSessionDescription;
-
-navigator.getUserMedia =
-    navigator.getUserMedia ||
-    navigator.webkitGetUserMedia ||
-    navigator.mozGetUserMedia ||
-    navigator.msGetUserMedia;
-
-const pc = new peerConnection({
-    iceServers: [
-        {
-            url: 'stun:stun.services.mozilla.com',
-            username: 'somename',
-            credential: 'somecredentials',
-        },
-    ],
-});
-
-function createOffer(id) {
-    pc.createOffer(function(offer) {
-        pc.setLocalDescription(
-            new sessionDescription(offer),
-            function() {
-                socket.emit('make-offer', {
-                    offer: offer,
-                    to: id,
-                });
-            },
-            error
-        );
-    }, error);
-}
-
-function error(err) {
-    console.warn('Error', err);
-}
-
 socket.on('offer-made', function (data) {
     offer = data.offer;
-
-    pc.setRemoteDescription(new sessionDescription(data.offer), function () {
-        pc.createAnswer(function (answer) {
-            pc.setLocalDescription(new sessionDescription(answer), function () {
+    const remote_pc = new peerConnection(configuration);
+    remote_pc.setRemoteDescription(new sessionDescription(data.offer), function () {
+        remote_pc.createAnswer(function (answer) {
+            remote_pc.setLocalDescription(new sessionDescription(answer), function () {
                 console.log('MAKE ANSWER');
                 socket.emit('make-answer', {
                     answer: answer,
@@ -165,21 +168,27 @@ socket.on('offer-made', function (data) {
 let answersFrom = {}, offer;
 
 socket.on('answer-made', function (data) {
+    // const remote_pc = new peerConnection(configuration);
+    const remote_pc = new peerConnection(configuration);
     pc.setRemoteDescription(new sessionDescription(data.answer), function () {
         // document.getElementById(data.socket).setAttribute('class', 'active');
         if (!answersFrom[data.socket]) {
             createOffer(data.socket);
             answersFrom[data.socket] = true;
         }
-        navigator.getUserMedia({video: true, audio: true}, function (stream) {
-            var video = document.querySelector('video');
-            video.srcObject = stream;
-            pc.addStream(stream);
-        }, error);
+    }, error);
+    
+    navigator.getUserMedia({video: true, audio: true}, function (stream) {
+        var video = document.querySelector('video');
+        video.srcObject = stream;
+        console.log(stream);
+        pc.addStream(stream);
     }, error);
 });
 
+
 pc.onaddstream = function (obj) {
+    console.log(obj);
     var vid = document.createElement('video');
     vid.setAttribute('class', 'video-small');
     vid.setAttribute('autoplay', 'autoplay');

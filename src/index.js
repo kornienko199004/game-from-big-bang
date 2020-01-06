@@ -85,6 +85,7 @@ io.on('connection', socket => {
   socket.on('make-offer', ({ offer, to }) => {
     console.log(offer);
     console.log(to);
+    console.log(socket.id);
     socket.to(to).emit('offer-made', {
       offer: offer,
       socket: socket.id
@@ -92,6 +93,7 @@ io.on('connection', socket => {
   });
 
   socket.on('make-answer', function (data) {
+    console.log(data);
     socket.to(data.to).emit('answer-made', {
       socket: socket.id,
       answer: data.answer
