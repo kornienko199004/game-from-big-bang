@@ -9,6 +9,37 @@ const { room } = Qs.parse(location.search, { ignoreQueryPrefix: true });
 const WIN_TEXT = 'ПОБЕДА';
 const LOSE_TEXT = 'ПОРАЖЕНИЕ';
 const DRAW_TEXT = 'НИЧЬЯ';
+let globalStream;
+
+let answersFrom = {},
+    offer;
+const peerConnection =
+    window.RTCPeerConnection ||
+    window.mozRTCPeerConnection ||
+    window.webkitRTCPeerConnection ||
+    window.msRTCPeerConnection;
+
+const sessionDescription =
+    window.RTCSessionDescription ||
+    window.mozRTCSessionDescription ||
+    window.webkitRTCSessionDescription ||
+    window.msRTCSessionDescription;
+
+navigator.getUserMedia =
+    navigator.getUserMedia ||
+    navigator.webkitGetUserMedia ||
+    navigator.mozGetUserMedia ||
+    navigator.msGetUserMedia;
+
+const pc = new peerConnection({
+    iceServers: [
+        {
+            url: 'stun:stun.services.mozilla.com',
+            username: 'somename',
+            credential: 'somecredentials',
+        },
+    ],
+});
 
 const playSound = src => {
     sound = new Howl({
@@ -27,6 +58,11 @@ socket.emit('join', { room }, error => {
 socket.on('return room', lastRoom => {
     const joinLink = new URL(location.origin);
     joinLink.searchParams.append('room', lastRoom);
+    if (globalStream) {
+        globalStream.getTracks().forEach((track) => {
+            track.stop();
+          });
+    }
 
     // should show link
     const html = Mustache.render(linkTemplate, {
@@ -35,67 +71,36 @@ socket.on('return room', lastRoom => {
     link.innerHTML = html;
 });
 
-// const peerConnection =
-//     window.RTCPeerConnection ||
-//     window.mozRTCPeerConnection ||
-//     window.webkitRTCPeerConnection ||
-//     window.msRTCPeerConnection;
-
-// const sessionDescription =
-//     window.RTCSessionDescription ||
-//     window.mozRTCSessionDescription ||
-//     window.webkitRTCSessionDescription ||
-//     window.msRTCSessionDescription;
-
-// navigator.getUserMedia =
-//     navigator.getUserMedia ||
-//     navigator.webkitGetUserMedia ||
-//     navigator.mozGetUserMedia ||
-//     navigator.msGetUserMedia;
-
-// const configuration = {
-//     iceServers: [
-//         {
-//             url: 'stun:stun.services.mozilla.com',
-//             // username: 'somename',
-//             // credential: 'somecredentials',
-//         },
-//     ],
-// };
-
-// const pc = new peerConnection(configuration);
-
-// function createOffer(id) {
-//     pc.createOffer(function(offer) {
-//         pc.setLocalDescription(
-//             new sessionDescription(offer),
-//             function() {
-//                 socket.emit('make-offer', {
-//                     offer: offer,
-//                     to: id,
-//                 });
-//             },
-//             error
-//         );
-//     }, error);
-// }
-
-// function error(err) {
-//     console.warn('Error', err);
-// }
-
-
-socket.on('start the game', (userInRoom) => {
+socket.on('start the game', userInRoom => {
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
-    console.log(userInRoom);
-    const oponentId = userInRoom.filter((item) => item.id !== socket.id)[0].id;
-    document.querySelector('#oponentId').innerHTML = oponentId;
-    document.querySelector('#oponentId').addEventListener('click', () => {
+    const oponentId = userInRoom.filter(item => item.id !== socket.id)[0].id;
+    document.querySelector('#oponentId').addEventListener('click', function() {
         createOffer(oponentId);
+        this.setAttribute('disabled', 'disabled');
     });
-    // createOffer(oponentId);
-    // playSound('sounds/start.mp3');
+    navigator.getUserMedia(
+        { video: true, audio: true },
+        function(stream) {
+            console.log(stream);
+            const video = document.querySelector('video');
+            video.srcObject = stream;
+            pc.addStream(stream);
+            globalStream = stream;
+        },
+        error
+    );
+
+    pc.onaddstream = function(obj) {
+        console.log(obj);
+        var vid = document.createElement('video');
+        vid.setAttribute('class', 'video-small');
+        vid.setAttribute('autoplay', 'autoplay');
+        vid.setAttribute('id', 'video-small');
+        vid.setAttribute('style', 'position:absolute; top:0; width:100px');
+        document.getElementById('users-container').appendChild(vid);
+        vid.srcObject = obj.stream;
+    };
 
     document.querySelector('#controls').addEventListener('click', function(e) {
         socket.emit('send move', { move: e.target.id });
@@ -153,139 +158,55 @@ socket.on('return result', ({ winnerId, lastMove }) => {
     showResults(lastMove, socket.id, result);
 });
 
-// socket.on('offer-made', function (data) {
-//     offer = data.offer;
-//     const remote_pc = new peerConnection(configuration);
-//     pc.setRemoteDescription(new sessionDescription(data.offer), function () {
-//         pc.createAnswer(function (answer) {
-//             pc.setLocalDescription(new sessionDescription(answer), function () {
-//                 console.log('MAKE ANSWER');
-//                 socket.emit('make-answer', {
-//                     answer: answer,
-//                     to: data.socket
-//                 });
-//             }, error);
-//         }, error);
-//     }, error);
-// });
-
-// let answersFrom = {}, offer;
-
-// socket.on('answer-made', function (data) {
-//     // const remote_pc = new peerConnection(configuration);
-//     const remote_pc = new peerConnection(configuration);
-//     pc.setRemoteDescription(new sessionDescription(data.answer), function () {
-//         // document.getElementById(data.socket).setAttribute('class', 'active');
-//         if (!answersFrom[data.socket]) {
-//             createOffer(data.socket);
-//             answersFrom[data.socket] = true;
-//         }
-//     }, error);
-// });
-    
-// navigator.getUserMedia({video: true, audio: true}, function (stream) {
-//     var video = document.querySelector('video');
-//     video.srcObject = stream;
-//     console.log(stream);
-//     pc.addStream(stream);
-// }, error);
-
-
-// pc.onaddstream = function (obj) {
-//     console.log(obj);
-//     var vid = document.createElement('video');
-//     vid.setAttribute('class', 'video-small');
-//     vid.setAttribute('autoplay', 'autoplay');
-//     vid.setAttribute('id', 'video-small');
-//     console.log(document.getElementById('users-container'))
-//     document.getElementById('users-container').appendChild(vid);
-//     vid.srcObject = obj.stream;
-// }
-
-
-// function error(err) {
-//     console.warn('Error', err);
-// }
-
-
-var answersFrom = {}, offer;
-var peerConnection = window.RTCPeerConnection ||
-    window.mozRTCPeerConnection ||
-    window.webkitRTCPeerConnection ||
-    window.msRTCPeerConnection;
-
-var sessionDescription = window.RTCSessionDescription ||
-    window.mozRTCSessionDescription ||
-    window.webkitRTCSessionDescription ||
-    window.msRTCSessionDescription;
-
-    navigator.getUserMedia  = navigator.getUserMedia ||
-    navigator.webkitGetUserMedia ||
-    navigator.mozGetUserMedia ||
-    navigator.msGetUserMedia;
-
-var pc = new peerConnection({
-    iceServers: [{
-        url: "stun:stun.services.mozilla.com",
-        username: "somename",
-        credential: "somecredentials"
-    }]
-});
-
-pc.onaddstream = function (obj) {
-    var vid = document.createElement('video');
-    vid.setAttribute('class', 'video-small');
-    vid.setAttribute('autoplay', 'autoplay');
-    vid.setAttribute('id', 'video-small');
-    document.getElementById('users-container').appendChild(vid);
-    vid.srcObject = obj.stream;
-}
-
-navigator.getUserMedia({video: true, audio: true}, function (stream) {
-    var video = document.querySelector('video');
-    video.srcObject = stream;
-    pc.addStream(stream);
-}, error);
-
-socket.on('remove-user', function (id) {
-    var div = document.getElementById(id);
-    document.getElementById('users').removeChild(div);
-});
-
-
-socket.on('offer-made', function (data) {
+socket.on('offer-made', function(data) {
+    document.querySelector('#oponentId').setAttribute('disabled', 'disabled');
     offer = data.offer;
 
-    pc.setRemoteDescription(new sessionDescription(data.offer), function () {
-        pc.createAnswer(function (answer) {
-            pc.setLocalDescription(new sessionDescription(answer), function () {
-                socket.emit('make-answer', {
-                    answer: answer,
-                    to: data.socket
-                });
+    pc.setRemoteDescription(
+        new sessionDescription(data.offer),
+        function() {
+            pc.createAnswer(function(answer) {
+                pc.setLocalDescription(
+                    new sessionDescription(answer),
+                    function() {
+                        socket.emit('make-answer', {
+                            answer: answer,
+                            to: data.socket,
+                        });
+                    },
+                    error
+                );
             }, error);
-        }, error);
-    }, error);
-
+        },
+        error
+    );
 });
 
-socket.on('answer-made', function (data) {
-    pc.setRemoteDescription(new sessionDescription(data.answer), function () {
-        if (!answersFrom[data.socket]) {
-            createOffer(data.socket);
-            answersFrom[data.socket] = true;
-        }
-    }, error);
+socket.on('answer-made', function(data) {
+    pc.setRemoteDescription(
+        new sessionDescription(data.answer),
+        function() {
+            if (!answersFrom[data.socket]) {
+                createOffer(data.socket);
+                answersFrom[data.socket] = true;
+            }
+        },
+        error
+    );
 });
 
 function createOffer(id) {
-    pc.createOffer(function (offer) {
-        pc.setLocalDescription(new sessionDescription(offer), function () {
-            socket.emit('make-offer', {
-                offer: offer,
-                to: id
-            });
-        }, error);
+    pc.createOffer(function(offer) {
+        pc.setLocalDescription(
+            new sessionDescription(offer),
+            function() {
+                socket.emit('make-offer', {
+                    offer: offer,
+                    to: id,
+                });
+            },
+            error
+        );
     }, error);
 }
 

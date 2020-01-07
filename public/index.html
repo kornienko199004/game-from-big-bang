@@ -20,36 +20,24 @@
                 <h3 style="width: 100%; text-align: center">
                     Камень, Ножницы, Бумага, Ящерица, Спок
                 </h3>
-                <div class="card" style="width: 200px; border: none;">
+                <!-- <div class="card" style="width: 200px; border: none;">
                     <img src="./images/game.png" class="card-img-top" />
                     <div class="card-body">
-                        <!-- <p class="card-text">
-                            Some quick example text to build on the card title
-                            and make up the bulk of the card's content.
-                        </p> -->
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
         <div>
-            
-        <div class="container">
-                <video class="video-large" autoplay></video>
-                <div class="users-container" id="users-container">
-                    <h4>Users</h4>
-                    <div id="users"></div>
-                </div>
-            <div>
-            <button id="oponentId"></button>
-            <!-- <div class="col-md-12 col-12">
-                    <video class="video-large" autoplay></video>
-            </div>
-
-            <div id="users-container"></div> -->
             <p id="link"></p>
         </div>
         <script id="game-template" type="text/html">
-            <div class="">
+                <div class="container d-flex justify-content-flex-start" style="margin-bottom: 10px;">
+                    <div class="col-md-4 col-12" style="position: relative;">
+                            <video class="video-large" autoplay style="width: 100%"></video>
+                            <div class="users-container" id="users-container"></div>
+                            <button class="btn btn-primary" id="oponentId">Video chat</button>
+                    </div>
+                </div>
                 <div class="container bg-secondary text-light vh-50 rounded p-3">
                         <div class="col-md-12 col-12 d-flex justify-content-center flex-wrap" id="controls">
                             <h4 style="width: 100%; text-align: center">Сделайте ход</h4>
