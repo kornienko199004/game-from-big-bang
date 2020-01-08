@@ -31,6 +31,26 @@ navigator.getUserMedia =
     navigator.mozGetUserMedia ||
     navigator.msGetUserMedia;
 
+const startStream = () => {
+    navigator.getUserMedia(
+        { video: true, audio: true },
+        function(stream) {
+            console.log(stream);
+
+            const vid = document.createElement('video');
+            vid.setAttribute('class', 'video-small');
+            vid.setAttribute('autoplay', 'autoplay');
+            vid.setAttribute('id', 'video-small');
+            vid.setAttribute('style', 'position:absolute; top:0; width:100px');
+            document.getElementById('users-container').appendChild(vid);
+            vid.srcObject = stream;
+            pc.addStream(stream);
+            globalStream = stream;
+        },
+        error
+    );
+};
+
 const pc = new peerConnection({
     iceServers: [
         {
@@ -59,9 +79,9 @@ socket.on('return room', lastRoom => {
     const joinLink = new URL(location.origin);
     joinLink.searchParams.append('room', lastRoom);
     if (globalStream) {
-        globalStream.getTracks().forEach((track) => {
+        globalStream.getTracks().forEach(track => {
             track.stop();
-          });
+        });
     }
 
     // should show link
@@ -75,30 +95,29 @@ socket.on('start the game', userInRoom => {
     const html = Mustache.render(gameTemplate);
     link.innerHTML = html;
     const oponentId = userInRoom.filter(item => item.id !== socket.id)[0].id;
-    document.querySelector('#oponentId').addEventListener('click', function() {
-        createOffer(oponentId);
-        this.setAttribute('disabled', 'disabled');
-    });
-    navigator.getUserMedia(
-        { video: true, audio: true },
-        function(stream) {
-            console.log(stream);
-            const video = document.querySelector('video');
-            video.srcObject = stream;
-            pc.addStream(stream);
-            globalStream = stream;
-        },
-        error
-    );
+    document
+        .querySelector('#oponentId')
+        .addEventListener('click', async function() {
+            await startStream();
+
+            setTimeout(() => {
+                socket.emit('start video-chat', oponentId);
+            }, 2000);
+            this.setAttribute('disabled', 'disabled');
+        });
 
     pc.onaddstream = function(obj) {
         console.log(obj);
-        var vid = document.createElement('video');
-        vid.setAttribute('class', 'video-small');
+        // const video = document.querySelector('video');
+        // video.srcObject = obj.stream;
+
+        const vid = document.createElement('video');
+        vid.setAttribute('class', 'video-large');
         vid.setAttribute('autoplay', 'autoplay');
-        vid.setAttribute('id', 'video-small');
-        vid.setAttribute('style', 'position:absolute; top:0; width:100px');
-        document.getElementById('users-container').appendChild(vid);
+        vid.setAttribute('id', 'video-large');
+        vid.setAttribute('style', 'width:100%');
+        const parent = document.getElementById('video-container');
+        parent.insertBefore(vid, parent.firstChild);
         vid.srcObject = obj.stream;
     };
 
@@ -110,6 +129,15 @@ socket.on('start the game', userInRoom => {
             }
         }
     });
+});
+
+socket.on('offer to start video-chat', from => {
+    startStream();
+    socket.emit('made-answer to start video-chat', from);
+});
+
+socket.on('answer to start video-chat', oponentId => {
+    createOffer(oponentId);
 });
 
 const gestureTranslate = {

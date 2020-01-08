@@ -5,6 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta http-equiv="X-UA-Compatible" content="ie=edge" />
         <title>Rock-scissors-paper-lizard-spock</title>
+        <link rel="icon" href="images/favicon.png">
         <link
             rel="stylesheet"
             href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
@@ -14,7 +15,7 @@
 
         <script src="/js/howler.js"></script>
     </head>
-    <body>
+    <body style="min-width:450px;">
         <div class="container">
             <div class="row justify-content-center flex-wrap">
                 <h3 style="width: 100%; text-align: center">
@@ -32,10 +33,10 @@
         </div>
         <script id="game-template" type="text/html">
                 <div class="container d-flex justify-content-flex-start" style="margin-bottom: 10px;">
-                    <div class="col-md-4 col-12" style="position: relative;">
-                            <video class="video-large" autoplay style="width: 100%"></video>
-                            <div class="users-container" id="users-container"></div>
-                            <button class="btn btn-primary" id="oponentId">Video chat</button>
+                    <div class="col-md-4 col-12" id="video-container" style="position: relative;">
+                            <!-- <video class="video-large" autoplay style="width: 100%"></video> -->
+                            <div class="users-container" id="users-container" style="min-height:40px"></div>
+                            <button class="btn btn-primary" id="oponentId" style="position:relative; left: 300px;">Video chat</button>
                     </div>
                 </div>
                 <div class="container bg-secondary text-light vh-50 rounded p-3">

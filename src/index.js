@@ -82,6 +82,14 @@ io.on('connection', socket => {
     }
   });
 
+  socket.on('start video-chat', (to) => {
+    socket.to(to).emit('offer to start video-chat', socket.id);
+  });
+
+  socket.on('made-answer to start video-chat', (to) => {
+    socket.to(to).emit('answer to start video-chat', socket.id);
+  });
+
   socket.on('make-offer', ({ offer, to }) => {
     console.log(offer);
     console.log(to);
